@@ -7,7 +7,7 @@ Port de **TF-8-Player** para **FortRise**. Permite partidas de hasta 8 jugadores
 ## Características
 
 - **Hasta 8 jugadores reales:** Soporta Versus Todos contra Todos (FFA) y Combate por Equipos (Team Deathmatch) para 8 jugadores (P1 a P8).
-- **Compatibilidad de mandos:** Admite hasta 8 mandos físicos vía DirectInput/SDL mediante el lanzador incluido, o combinación de mandos y teclado para los slots restantes.
+- **Compatibilidad de mandos:** Admite hasta 8 mandos físicos mediante el lanzador incluido, o combinación de mandos y teclado para los slots restantes.
 - **16 Torres adaptadas y corregidas:** Basadas en los niveles del mod original de Jonesey13 (12 torres clásicas y 4 de la expansión *Dark World*), retocadas y corregidas para solucionar problemas en puntos de aparición (*spawns* rotos o demasiado juntos) y garantizar un balance adecuado para 8 arqueros.
 - **Carga dinámica y segura:** Se instala como un mod estándar de FortRise sin sobrescribir archivos del juego.
 
@@ -28,7 +28,7 @@ Port de **TF-8-Player** para **FortRise**. Permite partidas de hasta 8 jugadores
    ```text
    <Ruta-de-TowerFall>\Mods\TF8Player
    ```
-   *(Ruta habitual en Steam: `C:\Program Files (x86)\Steam\steamapps\common\TowerFall\Mods\TF8Player`)*
+   *(Ruta habitual en Steam: `C:\Program Files (x86)\Steam\steamapps\common\TowerFall - FortRise\Mods\TF8Player`)*
 3. La carpeta instalada debe contener:
    * `TF8PlayerFortRise.dll`
    * `meta.json`
@@ -42,13 +42,8 @@ Port de **TF-8-Player** para **FortRise**. Permite partidas de hasta 8 jugadores
 
 ## Cómo jugar (Ejecución)
 
-- **Para 1 a 4 jugadores:** Puedes iniciar TowerFall normalmente desde Steam o mediante `FortRise.exe`.
-- **Para 5 a 8 jugadores:** Ejecuta siempre el lanzador incluido:
-  ```text
-  Mods\TF8Player\Launch-8Players.cmd
-  ```
-  **¿Por qué es necesario este lanzador?**  
-  El motor FNA y SDL inicializan los slots de mandos antes de que FortRise cargue los mods. El lanzador exporta las variables de entorno necesarias (`FNA_GAMEPAD_NUM_GAMEPADS=8` y configuración DirectInput) para que el sistema reconozca los 8 mandos físicos. Si tienes menos de 8 mandos, los jugadores restantes pueden unirse utilizando el teclado.
+- **Para 1 a 4 jugadores:** Inicia TowerFall normalmente desde Steam o mediante `FortRise.exe`.
+- **Para 5 a 8 jugadores:** Ejecuta `Mods\TF8Player\Launch-8Players.cmd`. Define `FNA_GAMEPAD_NUM_GAMEPADS=8` y las opciones SDL DirectInput/RawInput antes de iniciar el proceso. Si hay menos de 8 mandos, los jugadores restantes pueden unirse utilizando el teclado.
 
 ---
 
@@ -83,7 +78,7 @@ TF8Player/
 ├─ tools/                          # Herramientas de validación
 │  ├─ Validate-Harmony.cs
 │  └─ Validate-Harmony.runtimeconfig.json
-├─ Launch-8Players.cmd             # Lanzador con configuración de entorno para 8 mandos
+├─ Launch-8Players.cmd             # Configura ocho mandos antes de iniciar
 ├─ Compile-DLL.cmd                 # Script de compilación con .NET 10
 ├─ TF8PlayerFortRise.csproj        # Proyecto de C#
 ├─ meta.json                       # Manifiesto de mod para FortRise

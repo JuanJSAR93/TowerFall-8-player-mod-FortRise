@@ -104,13 +104,10 @@ internal static class RollcallTweenSourcePatch
             return true;
 
         Vector2 position = RollcallElement.GetPosition(playerIndex);
-        __result = (playerIndex % 4) switch
-        {
-            0 => new Vector2(-45f, position.Y),
-            1 => new Vector2(position.X - 17f, 330f),
-            2 => new Vector2(position.X + 17f, 330f),
-            _ => new Vector2(365f, position.Y)
-        };
+        // Wider Set brings the top row in from the left and the lower row in
+        // from the right. The larger travel distance is purely visual and
+        // does not change selection order or input ownership.
+        __result = position + Vector2.UnitX * (playerIndex < 4 ? -420f : 420f);
         return false;
     }
 }
@@ -138,12 +135,30 @@ internal static class RollcallCompactControlsPatch
 
         if (PlayerIndexField?.GetValue(__instance) is int playerIndex)
         {
+            // Wider Set anchors the player label and controller details to the
+            // upper-left corner of each 60x60 portrait.  Keeping that visual
+            // treatment makes the eight-player grid immediately readable
+            // without changing any of this mod's rollcall behaviour.
             Draw.OutlineTextCentered(
                 TFGame.Font,
                 "P" + (playerIndex + 1),
-                __instance.Position + new Vector2(8f, -30f),
+                __instance.Position + new Vector2(15f, -40f),
                 ArcherData.GetColorA(playerIndex),
-                Color.Black);
+                Color.Black,
+                2f);
+
+            PlayerInput[]? playerInputs = TFGame.PlayerInputs;
+            if (playerInputs is not null && playerIndex >= 0 && playerIndex < playerInputs.Length &&
+                playerInputs[playerIndex] is PlayerInput input)
+            {
+                Color nameColor = ArcherData.Archers[__instance.CharacterIndex].ColorA;
+                Draw.OutlineTextCentered(
+                    TFGame.Font,
+                    input.Name,
+                    __instance.Position + new Vector2(-15f, -15f),
+                    nameColor,
+                    Color.Black);
+            }
         }
 
         return false;
@@ -203,7 +218,9 @@ internal static class RollcallCompactPortraitPatch
         // These are player-slot colours, not archer colours. They deliberately
         // match the P1-P8 labels in the round/death summary.
         Color border = ArcherData.GetColorA(playerIndex);
-        Color portraitColor = joined ? Color.White : Color.White * 0.68f;
+        // Match Wider Set's muted unjoined portraits. Joined portraits keep
+        // their original bright colour and the TF8 player-colour frame.
+        Color portraitColor = joined ? Color.White : new Color(0.55f, 0.55f, 0.55f);
         Image activePortrait = portrait;
         float flipScaleX = 1f;
         if (!joined)
@@ -219,8 +236,10 @@ internal static class RollcallCompactPortraitPatch
             }
         }
 
-        Rectangle faceCrop = GetFaceCrop(activePortrait.ClipRect);
-        float faceScale = (cardSize - 6f) / faceCrop.Width;
+        Rectangle faceCrop = GetFaceCrop(activePortrait.ClipRect, __instance.CharacterIndex);
+        // Wider Set uses the native 60x60 source crop at its original scale.
+        // The four-pixel player-colour frame remains visible around it.
+        float faceScale = cardSize / faceCrop.Width;
         Vector2 faceScaleVector = new(
             faceScale * (1f + wiggler.Value * 0.05f) * flipScaleX,
             faceScale * (1f - wiggler.Value * 0.05f));
@@ -245,10 +264,10 @@ internal static class RollcallCompactPortraitPatch
         if (!hasAvailableInput)
             return false;
 
-        gem.Position = offset + lastShake + Vector2.UnitY * (halfCard + 9f);
-        gem.Scale = Vector2.One * 0.78f * (joined
-            ? 1.15f + 0.15f * gemWiggler.Value
-            : 0.9f + 0.15f * gemWiggler.Value);
+        gem.Position = offset + lastShake + Vector2.UnitY * 30f;
+        gem.Scale = Vector2.One * (joined
+            ? 1.5f + 0.2f * gemWiggler.Value
+            : 1f + 0.2f * gemWiggler.Value);
         gem.Rotation = (joined ? 45f : 20f) * lastMove * (MathF.PI / 180f) * gemWiggler.Value;
         gem.DrawOutline();
         gem.Render();
@@ -256,18 +275,27 @@ internal static class RollcallCompactPortraitPatch
         return false;
     }
 
-    private static Rectangle GetFaceCrop(Rectangle portraitRect)
+    private static Rectangle GetFaceCrop(Rectangle portraitRect, int characterIndex)
     {
-        // The top 60px hold the face in every native 60x120 Rollcall portrait.
-        // Keep the calculation defensive for portraits supplied by other mods.
+        // Wider Set's compact portrait logic crops from Y=10 and has one
+        // built-in correction for archer index 6 (an additional 50px down).
+        // The stock data in this installation does not define per-archer
+        // Wide*Offset values, so these are the complete offsets it actually
+        // supplies. Clamp them for third-party square portraits.
         int size = Math.Min(portraitRect.Width, portraitRect.Height);
-        return new Rectangle(portraitRect.X, portraitRect.Y, size, size);
+        int sourceX = portraitRect.X;
+        int sourceY = portraitRect.Y + 10 + (characterIndex == 6 ? 50 : 0);
+        int maxY = portraitRect.Bottom - size;
+        sourceY = Math.Clamp(sourceY, portraitRect.Y, Math.Max(portraitRect.Y, maxY));
+        return new Rectangle(sourceX, sourceY, size, size);
     }
 }
 
 internal static class TF8RollcallLayout
 {
-    internal const float CardSize = 54f;
+    // These are Wider Set's compact rollcall measurements, kept inside
+    // TowerFall's standard 320x240 menu instead of enabling its wide world.
+    internal const float CardSize = 60f;
 
     private static readonly FieldInfo? ControlIconPositionField =
         AccessTools.Field(typeof(RollcallElement), "ControlIconPos");
@@ -284,30 +312,45 @@ internal static class TF8RollcallLayout
     {
         int column = playerIndex % 4;
         int row = playerIndex / 4;
-        return new Vector2(52f + column * 72f, 70f + row * 86f);
+        return new Vector2(55f + column * 70f, 75f + row * 90f);
     }
 
     internal static void ApplyControlLayout(RollcallElement element)
     {
         bool compact = IsActive;
-        Vector2 controlPosition = compact ? new Vector2(-27f, -29f) : new Vector2(0f, 90f);
+        Vector2 controlPosition = compact ? new Vector2(-15f, -30f) : new Vector2(0f, 90f);
         ControlIconPositionField?.SetValue(null, controlPosition);
         if (ControlIconField?.GetValue(element) is Image controlIcon)
             controlIcon.Position = controlPosition;
 
-        float arrowY = compact ? 0f : 60f;
+        // Match Wider Set's visual grouping: the arrows sit on either side of
+        // the gem beneath the portrait rather than beside the portrait itself.
+        float arrowY = compact ? 30f : 60f;
         if (RightArrowField?.GetValue(element) is Image rightArrow)
         {
             rightArrow.Y = arrowY;
             if (compact)
-                rightArrow.X = 34f;
+                rightArrow.X = 20f;
         }
         if (LeftArrowField?.GetValue(element) is Image leftArrow)
         {
             leftArrow.Y = arrowY;
             if (compact)
-                leftArrow.X = -34f;
+                leftArrow.X = -19f;
         }
+    }
+}
+
+// RollcallElement sets a gamepad light colour unconditionally, including P5-P8.
+// Without the external launcher FNA's SDL backend owns only four physical slots,
+// so calling its light-bar API for an extended slot throws before the menu opens.
+// LEDs are cosmetic; the launcher path still gives all input functionality.
+[HarmonyPatch(typeof(Microsoft.Xna.Framework.Input.GamePad), "SetLightBarEXT")]
+internal static class TF8ExtendedLightBarPatch
+{
+    private static bool Prefix(PlayerIndex playerIndex)
+    {
+        return !TF8Runtime.Enabled || (int)playerIndex < TF8Runtime.VanillaPlayers;
     }
 }
 

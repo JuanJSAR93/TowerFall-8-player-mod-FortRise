@@ -1,8 +1,8 @@
 {
   "name": "TF8Player",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "priority": "Highest",
-  "description": "Port de TF-8-Player para FortRise. Usa teclado para completar los ocho jugadores y admite ocho mandos con el lanzador incluido.",
+  "description": "Port de TF-8-Player para FortRise. Admite hasta ocho mandos físicos y teclado sin modificar TowerFall.",
   "dll": "TF8PlayerFortRise.dll",
   "dependencies": [
     {

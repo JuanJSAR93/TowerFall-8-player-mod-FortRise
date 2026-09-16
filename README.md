@@ -7,7 +7,7 @@ A modern port of **TF-8-Player** for **FortRise**. Enables up to 8-player matche
 ## Features
 
 - **Up to 8 Players:** Supports 8-player Versus Free-for-All (FFA) and Team Deathmatch (P1 through P8).
-- **Controller Support:** Supports up to 8 physical gamepads via DirectInput/SDL through the included launcher, or keyboard input for remaining slots.
+- **Controller Support:** Supports up to 8 physical gamepads through the included launcher, or keyboard input for remaining slots.
 - **16 Adjusted and Fixed Towers:** Based on Jonesey13's original mod levels (12 classic towers + 4 *Dark World* expansion towers), retouched and fixed to resolve broken or cramped player spawn points for a fair, balanced start.
 - **Clean and Non-Invasive:** Installs as a standard FortRise mod without modifying original game files.
 
@@ -28,7 +28,7 @@ A modern port of **TF-8-Player** for **FortRise**. Enables up to 8-player matche
    ```text
    <TowerFall-Directory>\Mods\TF8Player
    ```
-   *(Typical Steam path: `C:\Program Files (x86)\Steam\steamapps\common\TowerFall\Mods\TF8Player`)*
+   *(Typical Steam path: `C:\Program Files (x86)\Steam\steamapps\common\TowerFall - FortRise\Mods\TF8Player`)*
 3. The installed mod folder must contain:
    * `TF8PlayerFortRise.dll`
    * `meta.json`
@@ -43,12 +43,7 @@ A modern port of **TF-8-Player** for **FortRise**. Enables up to 8-player matche
 ## How to Play (Running the Mod)
 
 - **For 1 to 4 players:** Launch TowerFall normally via Steam or `FortRise.exe`.
-- **For 5 to 8 players:** Always use the included launcher:
-  ```text
-  Mods\TF8Player\Launch-8Players.cmd
-  ```
-  **Why is this launcher required?**  
-  FNA and SDL initialize gamepad slots before FortRise loads mods. The launcher exports the required environment variables (`FNA_GAMEPAD_NUM_GAMEPADS=8` and DirectInput discovery hints) so the system detects all 8 physical controllers. If fewer than 8 gamepads are connected, remaining players can join using the keyboard.
+- **For 5 to 8 players:** Start `Mods\TF8Player\Launch-8Players.cmd`. It defines `FNA_GAMEPAD_NUM_GAMEPADS=8` and the SDL DirectInput/RawInput switches before the process starts. If fewer than 8 gamepads are connected, remaining players can join using the keyboard.
 
 ---
 
@@ -83,7 +78,7 @@ TF8Player/
 ├─ tools/                          # Validation tools
 │  ├─ Validate-Harmony.cs
 │  └─ Validate-Harmony.runtimeconfig.json
-├─ Launch-8Players.cmd             # Launcher configuring 8-gamepad environment
+├─ Launch-8Players.cmd             # Sets eight-gamepad environment before launch
 ├─ Compile-DLL.cmd                 # .NET 10 compilation script
 ├─ TF8PlayerFortRise.csproj        # C# project file
 ├─ meta.json                       # FortRise mod metadata manifest
