@@ -31,6 +31,8 @@ public sealed class TF8PlayerFortRiseModule : Mod
     public TF8PlayerFortRiseModule(IModContent content, IModuleContext context, ILogger logger)
         : base(content, context, logger)
     {
+        Environment.SetEnvironmentVariable("FNA_GAMEPAD_NUM_GAMEPADS", "8");
+
         OnLoad = Activate;
         OnInitialize = _ =>
         {
@@ -52,15 +54,6 @@ public sealed class TF8PlayerFortRiseModule : Mod
         {
             Logger.LogInformation("TF8PlayerFortRise is installed but inactive. Start with Launch-8Players.cmd.");
             return;
-        }
-
-        int slots = TF8Runtime.GetFnaGamepadSlots();
-        if (slots < TF8Runtime.MaxPlayers)
-        {
-            Logger.LogWarning(
-                "TF8PlayerFortRise found {available} FNA gamepad slots. The remaining player slots will use keyboard input; " +
-                "start Launch-8Players.cmd only when eight physical controllers are needed.",
-                slots);
         }
 
         TF8Runtime.Enabled = true;
